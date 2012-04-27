@@ -26,11 +26,12 @@ import os.path
 import random
 import re
 import sys
+
 import reddit
 
-from settings import DB_FILE, DEBUG_FILE, IMG_DIR, \
-                     MAX_SUBS, DEFAULT_SUBREDDITS, \
-                     IMG_TYPES
+from settings import (DB_FILE, DEBUG_FILE, IMG_DIR, 
+                     MAX_SUBS, DEFAULT_SUBREDDITS, 
+                     IMG_TYPES)
 
 def debug(title, domain, e):
     """Store debug info"""
@@ -57,7 +58,9 @@ def prevent_bad_name(filename):
     return re.sub("[\[\]\(\),\.;:'\"!]", "", filename)
 
 def get_image(sub, subreddit):
-    """Get image linked to by a reddit submission, save to cwd/IMG_DIR/'subreddit'. Creates the folders if they don't exist.'"""
+    """Get image linked to by a reddit submission, 
+        save to cwd/IMG_DIR/'subreddit'. Creates the folders
+        if they don't exist.'"""
     # By updating db early, we make sure that we only call an error
     # creating sub once.
     update_DB(sub)
@@ -76,7 +79,9 @@ def get_image(sub, subreddit):
     update_BG(outpath)
 
 def update_BG(path):
-    """Update the desktop background, with the image located at the relative path. Can currenlty only do this on gnome and ldxe (with Nathans wallpaper setter installed)."""
+    """Update the desktop background, with the image located at the 
+       relative path. Can currenlty only do this on gnome and ldxe
+       (with Nathans wallpaper setter installed)."""
     path = os.path.abspath(path)
     gnome_bg_img = "/desktop/gnome/background/picture_filename"
     command_for = {"gnome": "gconftool-2 -t str --set %s '%s'"
