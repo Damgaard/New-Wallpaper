@@ -7,31 +7,30 @@ By: Andreas Damgaard Pedersen
 This program goes on Reddit and finds a wallpaper from
 one of the wallpaper related subreddits that I like.
 It then update my desktop bagground with the new image.
-Updating of background only on a linux running gnome desktop
  
  ===========
  Potential features to add
  ===========
 
 Allow to get from top pictures instead of just hot
-Save info in SQL rather than txt
-Implement argument parser
+Use requests over urllib
 """
 
 from os import mkdir
+from random import shuffle
 from urllib import urlretrieve
-import urllib2
+import argparse
 import commands
 import os.path
-import random
 import re
 import sys
+import urllib2
 
 import reddit
 
 from settings import (DB_FILE, DEBUG_FILE, IMG_DIR, 
-                     MAX_SUBS, DEFAULT_SUBREDDITS, 
-                     IMG_TYPES)
+                      MAX_SUBS, DEFAULT_SUBREDDITS, 
+                      IMG_TYPES)
 
 def debug(title, domain, e):
     """Store debug info"""
@@ -62,7 +61,7 @@ def get_image(sub, subreddit):
         save to cwd/IMG_DIR/'subreddit'. Creates the folders
         if they don't exist.'"""
     # By updating db early, we make sure that we only call an error
-    # creating sub once.
+    # creating submission once.
     update_DB(sub)
     fil = prevent_bad_name(sub.title)
     ids = sub.id
@@ -96,34 +95,32 @@ def update_BG(path):
         # I need to get the status to ensure everything went okay
     print "BG Path: %s" % path
 
-def get_new(subreddits):
+def get_new(subreddits, nsfw):
     """Get a image submission from the new queue"""
     while len(subreddits):
         subreddit = subreddits.pop()
         submissions = r.get_subreddit(subreddit).get_hot(limit=MAX_SUBS)
         for sub in submissions:
-            if 'imgur.com' in sub.domain and not used(sub) and \
-                                             sub.url.endswith(".jpg"):
-                try:
-                    get_image(sub, subreddit)
-                    return True
-                except Exception, e:
-                    raise e
-                    #debug(sub.title, sub.domain, e)
-                    print "Whoops, that didn't work. Lets try something else"
+            if ('imgur.com' in sub.domain and not used(sub) and 
+                        sub.url.endswith(".jpg") and 
+                        (nsfw or not sub.over_18)):
+                get_image(sub, subreddit)
                 return True
         return False
 
 if __name__ == "__main__":
-    try:
-        r = reddit.Reddit(user_agent='Wallpaper by _Daimon_')
-        if not os.path.exists(DB_FILE):
-            new_db_file = open(DB_FILE, "w")
-            new_db_file.close()
-        subreddits = DEFAULT_SUBREDDITS if len(sys.argv) == 1 else \
-                         sys.argv[1:]
-        random.shuffle(subreddits)
-        if not get_new(subreddits):
-            print "We ran out of subreddits, before we could find a suitable wallpaper :("
-    except urllib2.URLError:
-        print "Error. No internet access."
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('subreddits', metavar='N', type=str, nargs='*',
+                       default=DEFAULT_SUBREDDITS,
+                       help='Subreddits to process')
+    parser.add_argument('--nsfw', '--NSFW', dest='show_nsfw', action='store_true',
+                       help='Should we take NSFW images')
+    args = parser.parse_args()
+    print args.subreddits
+    r = reddit.Reddit(user_agent='Wallpaper by _Daimon_')
+    if not os.path.exists(DB_FILE):
+        new_db_file = open(DB_FILE, "w")
+        new_db_file.close()
+    shuffle(args.subreddits)
+    if not get_new(args.subreddits, args.show_nsfw):
+        print "We ran out of subreddits, before we could find a suitable wallpaper :("
