@@ -51,7 +51,8 @@ def prevent_bad_name(filename):
     a bad filename or create filename format I don't like
     """
     filename = filename.replace(" ", "_")
-    return re.sub("[\[\]\(\),\.;:'\"!]", "", filename)
+    filename = re.sub("[\[\]\(\),\.;:'\"!]", "", filename)
+    return filename.encode('ascii', 'replace')
 
 def get_image(sub, subreddit):
     """
@@ -79,8 +80,8 @@ def get_image(sub, subreddit):
 def update_BG(path):
     """
     Update the desktop background, with the image located at the 
-    relative path. Can currenlty only do this on gnome and ldxe
-    (with Nathans wallpaper setter installed).
+    relative path. Can currently only do this on gnome and ldxe
+    (with Nathans wallpaper setter installed) Desktops.
     """
     path = os.path.abspath(path)
     gnome_bg_img = "/desktop/gnome/background/picture_filename"
