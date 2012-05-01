@@ -1,3 +1,0 @@
-This repository is all about getting a new fancy wallpaper for my linux desktop. It contains two different programs to do this. 
-    - wallpaper.py - Retrieves a fancy looking wallpaper from Reddit, using Reddit and Imgurs API. It then set that wallpaper as the system background. Written in Python. 
-    - kcdBG.sh - Finds the latest xkcd comic, downloads it and set it as the desktop background. Written in Bash. --

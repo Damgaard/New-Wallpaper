@@ -32,34 +32,33 @@ from settings import (DB_FILE, DEBUG_FILE, IMG_DIR,
                       MAX_SUBS, DEFAULT_SUBREDDITS, 
                       IMG_TYPES)
 
-def debug(title, domain, e):
-    """Store debug info"""
-    with open(DEBUG_FILE, 'a') as debug:
-        debug.write("Title: %s\n" % title)
-        debug.write("Domain: %s\n " % domain)
-        debug.write("Full Error: %s\n" % str(e))
-
 def used(sub):
     """Have we used this Reddit submission before?"""
     with open(DB_FILE, 'r') as db:
         return str(sub.id) in db.read()
 
 def update_DB(sub):
-    """Update Database over submissions we've seen before
-       Strips any illegal or unwanted chars from a proposed filename"""
+    """
+    Update Database over submissions we've seen before
+    Strips any illegal or unwanted chars from a proposed filename
+    """
     with open(DB_FILE, 'a') as db:
         db.write(sub.id + "\n")
 
 def prevent_bad_name(filename):
-    """Removes any char from the filename that might create
-       a bad filename or create filename format I don't like"""
+    """
+    Removes any char from the filename that might create
+    a bad filename or create filename format I don't like
+    """
     filename = filename.replace(" ", "_")
     return re.sub("[\[\]\(\),\.;:'\"!]", "", filename)
 
 def get_image(sub, subreddit):
-    """Get image linked to by a reddit submission, 
-        save to cwd/IMG_DIR/'subreddit'. Creates the folders
-        if they don't exist.'"""
+    """
+    Get image linked to by a reddit submission, 
+    save to cwd/IMG_DIR/'subreddit'. Creates the folders
+    if they don't exist.'
+    """
     # By updating db early, we make sure that we only call an error
     # creating submission once.
     update_DB(sub)
@@ -78,21 +77,24 @@ def get_image(sub, subreddit):
     update_BG(outpath)
 
 def update_BG(path):
-    """Update the desktop background, with the image located at the 
-       relative path. Can currenlty only do this on gnome and ldxe
-       (with Nathans wallpaper setter installed)."""
+    """
+    Update the desktop background, with the image located at the 
+    relative path. Can currenlty only do this on gnome and ldxe
+    (with Nathans wallpaper setter installed).
+    """
     path = os.path.abspath(path)
     gnome_bg_img = "/desktop/gnome/background/picture_filename"
     command_for = {"gnome": "gconftool-2 -t str --set %s '%s'"
-                        % (path, gnome_bg_img),
-                    "ldxe": "wallpaper %s" % path}
+                   % (path, gnome_bg_img), "ldxe": "wallpaper %s" % path}
     if os.environ.get('GNOME_DESKTOP_SESSION_ID'):
-        # Desktop enviroment is gnome
-        commands.getstatusoutput(command_for["gnome"])
+        # Desktop enviroment is gnome 
+        status, output = commands.getstatusoutput(command_for["gnome"])
     else:
         # Assume ldxe
-        commands.getstatusoutput(command_for["ldxe"])
-        # I need to get the status to ensure everything went okay
+        status, output = commands.getstatusoutput(command_for["ldxe"])
+    if status:
+        print "Failed to set new desktop wallpaper"
+        sys.exit(status)
     print "BG Path: %s" % path
 
 def get_new(subreddits, nsfw):
@@ -109,15 +111,24 @@ def get_new(subreddits, nsfw):
         return False
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description=
+                """
+                Get a new desktop wallpaper from Reddit.
+
+                It only looks at either the subreddits the program is
+                called with, or the 6 default subreddits. It is able
+                to set the desktop wallpaper on either gnome or ldxe
+                desktops. 
+
+                Current host able to get images from: imgur.com
+                """)
     parser.add_argument('subreddits', metavar='N', type=str, nargs='*',
-                       default=DEFAULT_SUBREDDITS,
-                       help='Subreddits to process')
-    parser.add_argument('--nsfw', '--NSFW', dest='show_nsfw', action='store_true',
-                       help='Should we take NSFW images')
+                default=DEFAULT_SUBREDDITS, help='Subreddits to process')
+    parser.add_argument('--nsfw', '--NSFW', dest='show_nsfw', 
+                action='store_true', help='Should we take NSFW images')
     args = parser.parse_args()
-    print args.subreddits
-    r = reddit.Reddit(user_agent='Wallpaper by _Daimon_')
+    print "We look in the following subreddits: ", args.subreddits
+    r = reddit.Reddit(user_agent='Wallpaper downloader program 1.0 by /u/_Daimon_')
     if not os.path.exists(DB_FILE):
         new_db_file = open(DB_FILE, "w")
         new_db_file.close()
