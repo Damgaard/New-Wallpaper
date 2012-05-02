@@ -51,7 +51,7 @@ def prevent_bad_name(filename):
     a bad filename or create filename format I don't like
     """
     filename = filename.replace(" ", "_")
-    filename = re.sub("[\[\]\(\),\.;:'\"!]", "", filename)
+    filename = re.sub("[\[\]\(\),\.;:|'\"!]", "", filename)
     return filename.encode('ascii', 'replace')
 
 def get_image(sub, subreddit):
