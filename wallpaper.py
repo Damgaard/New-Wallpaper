@@ -5,15 +5,15 @@ Created 6 January 2012
 By: Andreas Damgaard Pedersen
 
 This program goes on Reddit and finds a wallpaper from
-one of the wallpaper related subreddits that I like.
-It then update my desktop bagground with the new image.
+a list of subreddits given on the command line.
+
+Then updates the desktop bagground with the new image.
  
  ===========
  Potential features to add
  ===========
 
 Allow to get from top pictures instead of just hot
-Use requests over urllib
 """
 
 from os import mkdir
@@ -38,18 +38,12 @@ def used(sub):
         return str(sub.id) in db.read()
 
 def update_DB(sub):
-    """
-    Update Database over submissions we've seen before
-    Strips any illegal or unwanted chars from a proposed filename
-    """
+    """Update Database over submissions we've seen before"""
     with open(DB_FILE, 'a') as db:
         db.write(sub.id + "\n")
 
 def prevent_bad_name(filename):
-    """
-    Removes any char from the filename that might create
-    a bad filename or create filename format I don't like
-    """
+    """Cleans and return a usable filename"""
     filename = filename.replace(" ", "_")
     filename = re.sub("[\[\]\(\),\.;:|'\"!]", "", filename)
     return filename.encode('ascii', 'replace')
@@ -57,15 +51,15 @@ def prevent_bad_name(filename):
 def get_image(sub, subreddit):
     """
     Get image linked to by a reddit submission, 
-    save to cwd/IMG_DIR/'subreddit'. Creates the folders
+
+    Save to cwd/IMG_DIR/'subreddit'. Creates the folders
     if they don't exist.'
     """
     # By updating db early, we make sure that we only call an error
     # creating submission once.
     update_DB(sub)
-    fil = prevent_bad_name(sub.title)
-    ids = sub.id
-    filename = "%s-%s.jpg" % (fil, ids)
+    filename = "%s-%s.jpg" % (sub.title, sub.id)
+    filename = prevent_bad_name(filename) 
     outWPdir = os.path.join(IMG_DIR, subreddit)
     if not os.path.exists(IMG_DIR):
         os.mkdir(IMG_DIR)
@@ -79,9 +73,11 @@ def get_image(sub, subreddit):
 
 def update_BG(path):
     """
-    Update the desktop background, with the image located at the 
-    relative path. Can currently only do this on gnome and ldxe
-    (with Nathans wallpaper setter installed) Desktops.
+    Update the desktop background wallpaper.
+   
+    Use the image located at the relative path. Can currently 
+    only do this on gnome and ldxe (with Nathans wallpaper 
+    setter installed) Desktops.
     """
     path = os.path.abspath(path)
     gnome_bg_img = "/desktop/gnome/background/picture_filename"
@@ -109,7 +105,7 @@ def get_new(subreddits, nsfw):
                         (nsfw or not sub.over_18)):
                 get_image(sub, subreddit)
                 return True
-        return False
+    return False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=
