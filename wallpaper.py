@@ -21,6 +21,7 @@ from random import shuffle
 from urllib import urlretrieve
 import argparse
 import commands
+import ctypes
 import os.path
 import re
 import sys
@@ -75,17 +76,15 @@ def update_BG(path):
     """
     Update the desktop background wallpaper.
    
-    Use the image located at the relative path. Can currently 
-    only do this on gnome and ldxe (with Nathans wallpaper 
-    setter installed) Desktops.
+    Use the image located at the relative path. Can currently only do this on 
+    windows, gnome and ldxe (with Nathans wallpaper setter installed) Desktops.
     """
     path = os.path.abspath(path)
-    gnome_bg_img = "/desktop/gnome/background/picture_filename"
-    command_for = {"gnome": "gconftool-2 -t str --set %s '%s'"
-                   % (path, gnome_bg_img), "ldxe": "wallpaper %s" % path}
-    if os.environ.get('GNOME_DESKTOP_SESSION_ID'):
-        # Desktop enviroment is gnome 
-        status, output = commands.getstatusoutput(command_for["gnome"])
+    if sys.platform.startswith('win'):
+        # Windows system
+        SPI_SETDESKWALLPAPER = 20
+        ctypes.windll.user32.SystemParametersInfoA(SPI_SETDESKWALLPAPER, 0,
+                                                   path)
     else:
         # Assume ldxe
         status, output = commands.getstatusoutput(command_for["ldxe"])
@@ -112,10 +111,9 @@ if __name__ == "__main__":
                 """
                 Get a new desktop wallpaper from Reddit.
 
-                It only looks at either the subreddits the program is
-                called with, or the 6 default subreddits. It is able
-                to set the desktop wallpaper on either gnome or ldxe
-                desktops. 
+                It only looks at either the subreddits the program is called
+                with, or the 6 default subreddits. It is able to set the
+                desktop wallpaper on windows, gnome or ldxe desktops.
 
                 Current host able to get images from: imgur.com
                 """)
