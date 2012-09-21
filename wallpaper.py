@@ -4,11 +4,10 @@
 Created 6 January 2012
 By: Andreas Damgaard Pedersen
 
-This program goes on Reddit and finds a wallpaper from
-a list of subreddits given on the command line.
+This program goes on reddit and finds a wallpaper from a list of subreddits
+given on the command line. Then updates the desktop bagground with the new
+image.
 
-Then updates the desktop bagground with the new image.
- 
  ===========
  Potential features to add
  ===========
@@ -25,42 +24,40 @@ import ctypes
 import os.path
 import re
 import sys
-import urllib2
 
-import reddit
+import praw
 
 from settings import (DB_FILE, DEBUG_FILE, IMG_DIR, 
-                      MAX_SUBS, DEFAULT_SUBREDDITS, 
-                      IMG_TYPES)
+                      MAX_SUBS, DEFAULT_SUBREDDITS)
 
 def used(sub):
-    """Have we used this Reddit submission before?"""
+    """Have we used this submission before?"""
     with open(DB_FILE, 'r') as db:
         return str(sub.id) in db.read()
 
 def update_DB(sub):
-    """Update Database over submissions we've seen before"""
+    """Update Database over submissions we've seen before."""
     with open(DB_FILE, 'a') as db:
         db.write(sub.id + "\n")
 
 def prevent_bad_name(filename):
-    """Cleans and return a usable filename"""
-    filename = filename.replace(" ", "_")
-    filename = re.sub("[\[\]\(\),\.;:|'\"!]", "", filename)
+    """Cleans and return a usable filename."""
+    filename = re.sub("[ -]", "_", filename)
+    filename = re.sub("[^a-zA-Z_]", "", filename)
     return filename.encode('ascii', 'replace')
 
 def get_image(sub, subreddit):
     """
-    Get image linked to by a reddit submission, 
+    Download image linked to by a reddit submission,
 
-    Save to cwd/IMG_DIR/'subreddit'. Creates the folders
-    if they don't exist.'
+    Save to module_folder/IMG_DIR/'subreddit. Create folder if it doesn't exist
+    already.
     """
     # By updating db early, we make sure that we only call an error
     # creating submission once.
     update_DB(sub)
-    filename = "%s-%s.jpg" % (sub.title, sub.id)
-    filename = prevent_bad_name(filename) 
+    filename = "%s-%s" % (sub.title, sub.id)
+    filename = prevent_bad_name(filename) + ".jpg"
     outWPdir = os.path.join(IMG_DIR, subreddit)
     if not os.path.exists(IMG_DIR):
         os.mkdir(IMG_DIR)
@@ -86,15 +83,18 @@ def update_BG(path):
         ctypes.windll.user32.SystemParametersInfoA(SPI_SETDESKWALLPAPER, 0,
                                                    path)
     else:
-        # Assume ldxe
-        status, output = commands.getstatusoutput(command_for["ldxe"])
-    if status:
-        print "Failed to set new desktop wallpaper"
-        sys.exit(status)
-    print "BG Path: %s" % path
+        gnome_bg_img = "/desktop/gnome/background/picture_filename"
+        command_for = {"gnome": "gconftool-2 -t str --set %s '%s'"
+                       % (path, gnome_bg_img), "ldxe": "wallpaper %s" % path}
+        if os.environ.get('GNOME_DESKTOP_SESSION_ID'):
+            # Desktop enviroment is gnome
+            status, output = commands.getstatusoutput(command_for["gnome"])
+        else:
+            # Assume ldxe
+            status, output = commands.getstatusoutput(command_for["ldxe"])
 
 def get_new(subreddits, nsfw):
-    """Get a image submission from the new queue"""
+    """Get a image submission from the new queue."""
     while len(subreddits):
         subreddit = subreddits.pop()
         submissions = r.get_subreddit(subreddit).get_hot(limit=MAX_SUBS)
@@ -119,14 +119,14 @@ if __name__ == "__main__":
                 """)
     parser.add_argument('subreddits', metavar='N', type=str, nargs='*',
                 default=DEFAULT_SUBREDDITS, help='Subreddits to process')
-    parser.add_argument('--nsfw', '--NSFW', dest='show_nsfw', 
+    parser.add_argument('--nsfw', '--NSFW', dest='show_nsfw',
                 action='store_true', help='Should we take NSFW images')
     args = parser.parse_args()
-    print "We look in the following subreddits: ", args.subreddits
-    r = reddit.Reddit(user_agent='Wallpaper downloader program 1.0 by /u/_Daimon_')
-    if not os.path.exists(DB_FILE):
-        new_db_file = open(DB_FILE, "w")
-        new_db_file.close()
+    r = praw.Reddit(user_agent='Wallpaper downloader program 1.1 by '
+                               '/u/_Daimon_')
+    if not os.path.exists(DB_FILE:
+        open(DB_FILE, "w").close()
     shuffle(args.subreddits)
     if not get_new(args.subreddits, args.show_nsfw):
-        print "We ran out of subreddits, before we could find a suitable wallpaper :("
+        print ("We ran out of subreddits, before we could find a suitable "
+               "wallpaper :(")

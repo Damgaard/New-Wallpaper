@@ -1,0 +1,8 @@
+*.pyc
+*.swp
+*.un*
+*.jpg
+*.gif
+*.png
+WP_Data.txt
+images/

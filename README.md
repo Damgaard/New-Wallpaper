@@ -1,10 +1,8 @@
 New Wallpaper
 =============
 
-This repository is dedicated to getting a new wallpaper and setting it as the
-desktop background.
-
-Programs have only been tested on linux OS.
+This repo contains two programs designed to get a flashy wallpaper and set it
+as the desktop background.
 
 Created by Andreas Damgaard Pedersen
 Github account: [https://github.com/AndreasDamgaardPedersen/New-Wallpaper](AndreapsDamgaardPedersen)
@@ -12,14 +10,14 @@ Github account: [https://github.com/AndreasDamgaardPedersen/New-Wallpaper](Andre
 Wallpaper.py
 ---------
 
-Uses the reddit API to download a fancy wallpaper from one of the wallpaper
-dedicated subreddits. What subreddits it looks at can be modified from the
-command-line. It is only able to set the desktop wallpaper on either a 
-Gnome desktop or a ldxe with Nathans wallpaper setter installed. The latter
-is the default in puppy linux.
+Uses the Python Reddit API Wrapper (PRAW) to download a fancy wallpaper from a
+wallpaper dedicated subreddits. What subreddits it looks at can be modified 
+from the command-line arguments. It is only able to set the desktop wallpaper
+on Windows or Linux with eith either a gnome desktop or ldxe with Nathans
+wallpaper setter installer. The latter is the defailt in Puppy linux.
 
 xkcdBG.sh
 --------
 
 Find the latest xkcd comic, downloads it and set it as the desktop bagground.
-Only works on gnome desktop at the moment.
+Only works on Linux with the gnome desktop.
