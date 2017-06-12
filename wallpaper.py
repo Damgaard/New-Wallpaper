@@ -124,7 +124,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     r = praw.Reddit(user_agent='Wallpaper downloader program 1.1 by '
                                '/u/_Daimon_')
-    if not os.path.exists(DB_FILE:
+    if not os.path.exists(DB_FILE):
         open(DB_FILE, "w").close()
     shuffle(args.subreddits)
     if not get_new(args.subreddits, args.show_nsfw):
